@@ -30,7 +30,7 @@ Respond ONLY using this format. Do not explain your answer. Always return a resp
         'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'gpt-4-vision-preview',
+        model: 'gpt-4-1106-vision-preview',
         messages: [
           {
             role: 'user',
