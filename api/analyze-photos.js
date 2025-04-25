@@ -10,6 +10,7 @@ export default async function handler(req, res) {
 
   try {
     const { image_urls, user_id } = req.body;
+    console.log("Full request body from Lovable:", JSON.stringify(req.body, null, 2));
     console.log("Received image_urls:", image_urls);
     if (!image_urls || image_urls.length === 0) {
       return res.status(400).json({ error: 'No images provided.' });
