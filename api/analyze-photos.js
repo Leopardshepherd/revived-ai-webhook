@@ -1,5 +1,3 @@
-// api/analyze-photos.js
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Only POST requests allowed' });
@@ -12,26 +10,26 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'No images provided.' });
     }
 
-    const prompt = `You are an AI trained in vintage and resale item valuation.
+    const prompt = `
+You are an AI trained in vintage and resale item valuation.
 
-Based ONLY on the attached images, please return all of the following:
+Based ONLY on the attached images, return all of the following:
 1. A short and catchy product title
 2. A 2–3 sentence product description
 3. A general category (Furniture, Electronics, Decor, Apparel, etc.)
 4. A condition rating (New, Like New, Good, Fair, Poor)
 5. A recommended resale price range in USD
 
-Respond with exactly this format:
+Respond with this format:
 
 Title: ...
 Description: ...
 Category: ...
 Condition: ...
 Price: ...
+    `;
 
-The user uploaded ${image_urls.length} images. Use all available visual context.`;
-
-    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -55,21 +53,22 @@ The user uploaded ${image_urls.length} images. Use all available visual context.
       })
     });
 
-    const json = await openaiResponse.json();
-    const text = json.choices?.[0]?.message?.content || '';
+    const result = await response.json();
 
-    const lines = text.split('\n').filter(line => line.trim() !== '');
+    const text = result?.choices?.[0]?.message?.content || '';
+    const lines = text.split('\n').filter(line => line.trim());
+
     const data = {
-      title: lines[0]?.replace(/^1\\./, '').trim(),
-      description: lines[1]?.replace(/^2\\./, '').trim(),
-      category: lines[2]?.replace(/^3\\./, '').trim(),
-      condition: lines[3]?.replace(/^4\\./, '').trim(),
-      price: lines[4]?.replace(/^5\\./, '').trim()
+      title: lines.find(line => line.startsWith('Title:'))?.replace('Title:', '').trim() || '',
+      description: lines.find(line => line.startsWith('Description:'))?.replace('Description:', '').trim() || '',
+      category: lines.find(line => line.startsWith('Category:'))?.replace('Category:', '').trim() || '',
+      condition: lines.find(line => line.startsWith('Condition:'))?.replace('Condition:', '').trim() || '',
+      price: lines.find(line => line.startsWith('Price:'))?.replace('Price:', '').trim() || ''
     };
 
     return res.status(200).json({ success: true, data });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: 'Failed to analyze images.' });
+    console.error('AI ERROR:', err);
+    return res.status(500).json({ error: 'AI failed to return data.' });
   }
 }
