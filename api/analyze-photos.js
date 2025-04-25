@@ -12,13 +12,23 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'No images provided.' });
     }
 
-    const prompt = `You are a professional appraiser for a virtual consignment platform.
-Based on the attached images, please provide:
-1. A clear and catchy title
-2. A short description
-3. A general category (e.g. Furniture, Electronics)
-4. A resale condition (New, Like New, Good, Fair, Poor)
-5. A recommended resale price range for the item.
+    const prompt = `You are an AI trained in vintage and resale item valuation.
+
+Based ONLY on the attached images, please return all of the following:
+1. A short and catchy product title
+2. A 2–3 sentence product description
+3. A general category (Furniture, Electronics, Decor, Apparel, etc.)
+4. A condition rating (New, Like New, Good, Fair, Poor)
+5. A recommended resale price range in USD
+
+Respond with exactly this format:
+
+Title: ...
+Description: ...
+Category: ...
+Condition: ...
+Price: ...
+`
 
 The user uploaded ${image_urls.length} images. Use all available visual context.`;
 
