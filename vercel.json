@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "api/analyze-photos.js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/api/analyze-photos", "dest": "/api/analyze-photos.js" }
+  ]
+}
