@@ -11,15 +11,15 @@ export default async function handler(req, res) {
     }
 
     const prompt = `
-You are a resale appraisal AI. Use the attached images and respond in exactly this format:
+You are an AI resale appraiser. Based ONLY on the attached images, return the following in this exact format:
 
-Title: [short title]
-Description: [2-sentence product description]
-Category: [general category like Furniture, Decor, Apparel]
-Condition: [New, Like New, Good, Fair, Poor]
-Price: [$XX–$XX]
+Title: [short item name]  
+Description: [2-3 sentence product description]  
+Category: [Furniture, Decor, Apparel, etc.]  
+Condition: [New, Like New, Good, Fair, Poor]  
+Price: [$XX–$YY]
 
-ONLY respond using the format above. Do not explain. Do not add commentary.
+Do not explain. Do not say anything else. Only use this format.
 `;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -47,9 +47,9 @@ ONLY respond using the format above. Do not explain. Do not add commentary.
     });
 
     const result = await response.json();
-    const rawText = result?.choices?.[0]?.message?.content || '';
 
-    console.log("GPT-4 Response:\n", rawText);
+    const rawText = result?.choices?.[0]?.message?.content || '';
+    console.log("GPT-4 RAW OUTPUT:", rawText);  // This will show in Vercel logs
 
     const parseLine = (label) => {
       const match = rawText.match(new RegExp(`${label}:\\s*(.*)`, 'i'));
@@ -65,6 +65,7 @@ ONLY respond using the format above. Do not explain. Do not add commentary.
     };
 
     return res.status(200).json({ success: true, data });
+
   } catch (err) {
     console.error('AI error:', err);
     return res.status(500).json({ error: 'AI failed to return usable data.' });
