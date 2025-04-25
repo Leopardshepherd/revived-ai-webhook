@@ -11,23 +11,16 @@ export default async function handler(req, res) {
     }
 
     const prompt = `
-You are an AI trained in vintage and resale item valuation.
+You are a resale appraisal AI. Use the attached images and respond in exactly this format:
 
-Based ONLY on the attached images, return all of the following:
-1. A short and catchy product title
-2. A 2–3 sentence product description
-3. A general category (Furniture, Electronics, Decor, Apparel, etc.)
-4. A condition rating (New, Like New, Good, Fair, Poor)
-5. A recommended resale price range in USD
+Title: [short title]
+Description: [2-sentence product description]
+Category: [general category like Furniture, Decor, Apparel]
+Condition: [New, Like New, Good, Fair, Poor]
+Price: [$XX–$XX]
 
-Respond with this format:
-
-Title: ...
-Description: ...
-Category: ...
-Condition: ...
-Price: ...
-    `;
+ONLY respond using the format above. Do not explain. Do not add commentary.
+`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -54,21 +47,26 @@ Price: ...
     });
 
     const result = await response.json();
+    const rawText = result?.choices?.[0]?.message?.content || '';
 
-    const text = result?.choices?.[0]?.message?.content || '';
-    const lines = text.split('\n').filter(line => line.trim());
+    console.log("GPT-4 Response:\n", rawText);
+
+    const parseLine = (label) => {
+      const match = rawText.match(new RegExp(`${label}:\\s*(.*)`, 'i'));
+      return match ? match[1].trim() : '';
+    };
 
     const data = {
-      title: lines.find(line => line.startsWith('Title:'))?.replace('Title:', '').trim() || '',
-      description: lines.find(line => line.startsWith('Description:'))?.replace('Description:', '').trim() || '',
-      category: lines.find(line => line.startsWith('Category:'))?.replace('Category:', '').trim() || '',
-      condition: lines.find(line => line.startsWith('Condition:'))?.replace('Condition:', '').trim() || '',
-      price: lines.find(line => line.startsWith('Price:'))?.replace('Price:', '').trim() || ''
+      title: parseLine('Title'),
+      description: parseLine('Description'),
+      category: parseLine('Category'),
+      condition: parseLine('Condition'),
+      price: parseLine('Price')
     };
 
     return res.status(200).json({ success: true, data });
   } catch (err) {
-    console.error('AI ERROR:', err);
-    return res.status(500).json({ error: 'AI failed to return data.' });
+    console.error('AI error:', err);
+    return res.status(500).json({ error: 'AI failed to return usable data.' });
   }
 }
