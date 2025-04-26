@@ -1,9 +1,15 @@
 export default async function handler(req, res) {
+  // ✅ CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // ✅ Preflight check
   if (req.method === 'OPTIONS') {
     res.status(200).send('OK');
     return;
   }
-  
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Only POST requests allowed' });
   }
@@ -12,6 +18,7 @@ export default async function handler(req, res) {
     const { image_urls, user_id } = req.body;
     console.log("Full request body from Lovable:", JSON.stringify(req.body, null, 2));
     console.log("Received image_urls:", image_urls);
+
     if (!image_urls || image_urls.length === 0) {
       return res.status(400).json({ error: 'No images provided.' });
     }
@@ -55,7 +62,6 @@ Respond ONLY using this format. Do not explain your answer. Always return a resp
 
     const result = await response.json();
 
-    // Log the full GPT response to Vercel logs for debugging
     console.log("FULL OpenAI API response:", JSON.stringify(result, null, 2));
 
     const rawText = result?.choices?.[0]?.message?.content || '';
